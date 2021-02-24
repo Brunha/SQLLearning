@@ -1,0 +1,774 @@
+Tasks -> Import Data --> Fill data on an existing table
+Tasks -> Import Flat File --> Create new tablle
+
+
+CREATE TABLE Persons
+(
+PersonID int,
+PersonName varchar(100),
+City varchar(50),
+Country varchar(50)
+)
+
+ALTER TABLE Persons
+ADD YearOfBirth int
+
+ALTER TABLE Persons
+DROP COLUMN City
+
+ALTER Table Persons
+ALTER COLUMN COuntry varchar(80)
+
+------------------
+
+
+-- UNIQUE -> not same value is duplicated
+-- CHECK -> put some limits for the values choosen
+
+CREATE TABLE Employees 
+(
+EmplyeeID int NOT NULL UNIQUE,
+EmployeeName varchar(150) NOT NULL,
+Salary decimal(9,2) DEFAULT 3000,
+Age int CHECK(Age >= 18)
+)
+
+
+---------------------------
+
+
+-- TRUNCATE TABLE -> Data Table Deleted
+
+TRUNCATE TABLE Employees
+
+-- DROP TABLE -> Delete Table
+
+DROP TABLE Employees
+
+
+---------------------------
+
+
+CREATE TABLE Employees 
+(
+EmplyeeID int NOT NULL UNIQUE,
+EmployeeFirstName varchar(50) NOT NULL,
+EmployeeLastName varchar(50) NOT NULL,
+Gender varchar(10) CHECK(Gender='Male' OR Gender='Female'), -- Gender VARCHAR(6) NOT NULL CHECK (Gender IN ('Male', 'Female'))
+Country varchar(100),
+DOB date,
+MobileNumber varchar(50),
+Email varchar(30),
+Remarks varchar(250),
+)
+
+CREATE TABLE Jobs
+(
+JobID int UNIQUE NOT NULL,
+jobTitle varchar(50) NOT NULL,
+JobMinSalary decimal(9,2) DEFAUlT 1000,
+JobMaxSalary decimal(9,2) DEFAUlT 10000,
+IsManagerial bit DEFAULT 0,
+Remarks varchar(250),
+)
+
+
+
+-----------------------------------
+
+-- FOREIGN Keys
+
+CREATE TABLE Countries
+(
+	CountryID int PRIMARY KEY,
+	CountryName varchar(250) NOT NULL,
+	CountryAb varchar(5),
+	Capital varchar(50)
+)
+
+
+CREATE TABLE Cities
+(
+	CityID int PRIMARY KEY,
+	CityName varchar(250) NOT NULL,
+	CountryID int FOREIGN KEY REFERENCES Countries(CountryID)
+)
+
+
+-----------------------------------
+
+select TOP 10 * from Employees
+
+
+select * from x where Gender <> 'female'  -- <> -> NOT EQUAL
+select * from x where not Gender = 'male' -- samething, other expression
+
+select * from HumanResources.dob.emplyees
+where year(DOB) <= 2000  --> DOB is date field
+
+SELECT * from Production.Product
+where Color = 'silver' and MONTH(SellStartDate) = 5 --> Select May products and color silver
+
+select * from emplyees
+order by CountryID, gender desc --> order os columns
+
+
+--------------------------------
+
+-- Create Tables from anothers tables
+
+select * into temp_employees from Employees -- Create new table with Employees table data
+
+
+select EmployeeID, EmployeeFirstName, EmployeeLastName, DepartmentID 
+into planning_employees 
+from Employees
+where DepartmentID = 8 -- Create a new table from another table that has a specific data
+
+slelect * from Employees
+where StatusId is NULL 	--> Show all nulls data in StatusID
+
+
+select ProductID, Name, ProductNumber, Color, SellStartDate 
+from Production.Product
+where (Color ='Silver' or color = 'Red') and (year(SellStartDate) = 2008 
+or year(SellStartDate) = 2011)
+order by color, SellStartDate
+
+
+
+------------------------------------------------------------------
+
+select * from Employees
+where EmployeeFirstName like 'J_' --> _ search Employees where first Name starts with "J" and have one more letter
+
+
+select * from Employees
+where EmployeeFirstName like 'J%' --> % search Employees where first Name starts with "J"
+
+
+select * from Employees
+where EmployeeFirstName like '%S%' --> Search for Emplyees where they've "S" in the name, no matter in the beggining, middle or end
+
+
+
+select * from Employees
+where EmployeeFirstName like '[a-d]%' --> Select all employees where name starts with a, b, c and d
+
+select * from Employees
+where EmployeeFirstName like '[^a-d]%' --> Select all employees where name don't starts with a, b, c and d
+
+select * from Employees
+where CountryID in (1,2,6)
+order by CountryID --> Select all Employees where CountryID is 1, 2 or 6
+
+
+select * from Employees
+where CountryID not in (1,2,6)
+order by CountryID --> Select all Employees where CountryID isn't 1, 2 or 6
+
+
+select * from Jobs
+where MinSalary between 1000 and 4000
+order by MinSalary --> select all jobos where minsalary is between x and z
+
+
+select * from Jobs
+where MinSalary not between 1000 and 4000
+order by MinSalary --> select all jobos where minsalary is not between x and z
+
+
+select * from AdventureWorks2017.HumanResources.Employee
+where (YEAR(HireDate) between 2010 and 2011) and JobTitle not in ('Janitor','Buyer')
+order by HireDate --> select all employees where year is between 2010 and 2011 not included Buyers and Janitors jobTitles
+
+---------------------------------------------
+
+-- Distinct -> no duplicate
+
+select distinct firstname from Person.Person
+order by FirstName --> search Persons first Name no repetion
+
+
+select top 20 percent * from Employees --> Select 20% of data on Employees table
+
+select firstnamefrom HumanResources.dbo.Employees
+union
+select firstname from AdventureWorks2017.Person.Person
+order by EmployeeFirstName --> Union the data from the too dbos (ps: Table need the same to call), don't show repeated values
+
+select firstnamefrom HumanResources.dbo.Employees
+union all
+select firstname from AdventureWorks2017.Person.Person
+order by EmployeeFirstName --> With all command, show repeated values
+
+
+-----------------------------------------------------------------
+
+-- ORDER BY / CASES 
+
+select EmployeeFirstName from Employees
+intersect	
+select firstname from AdventureWorks2017.Person.Person
+order by firstname --> Intercepts all persons that are included on the 2 DB
+
+select EmployeeFirstName from Employees
+except	
+select firstname from AdventureWorks2017.Person.Person
+order by firstname --> All persons that are not included in both DB
+
+
+
+select *,
+case
+when CountryID = 1 then 'USA'
+when CountryID = 2 then 'Germany'
+when CountryID = 3 then 'China'
+when CountryID = 4 then 'Russia'
+when CountryID = 5 then 'Eqypt'
+when CountryID = 6 then 'Australia'
+else 'NA info'
+end as CountryName
+from Employees
+order by CountryName --> select all employees with case statement to show employee Country Name,
+					 --> "AS" -> Column Title
+
+select *,
+case
+when MONTH(DOB) = 01 then 'January'
+when MONTH(DOB) = 02 then 'February'
+when MONTH(DOB) = 03 then 'March'
+when MONTH(DOB) = 04 then 'April'
+when MONTH(DOB) = 05 then 'May'
+when MONTH(DOB) = 06 then 'June'
+when MONTH(DOB) = 07 then 'Jul'
+when MONTH(DOB) = 08 then 'August'
+when MONTH(DOB) = 09 then 'September'
+when MONTH(DOB) = 10 then 'Octuber'
+when MONTH(DOB) = 11 then 'November'
+when MONTH(DOB) = 12 then 'December'
+else 'NA info'
+end as MonthName from Employees
+order by MONTH(DOB) --> Display month names column order by month
+
+
+----------------------------------------------------------------
+
+SubQueries
+
+select * from Employees
+where EmployeeID not in
+(
+select EmployeeID from PreviousExperience) --> select all employees where that employee hadn't previous experience (he's not in that table
+)
+
+select CityName from Cities
+where CityID in (
+select CityID from PreviousExperience
+where YEAR(StartDate) >= 2015) --> select CityNames where math with previousExperience table started at 2015
+
+-----------------------------------------------------------------------
+
+MAX, MIN; COuNT
+
+select Max(minsalary) as MAxMinSalary
+from jobs
+
+select Min(minsalary) as MinMinSalary
+from jobs
+
+select Max(maxsalary) as MAxMaxSalary
+from jobs
+
+select Min(minsalary) as MAxMinSalary
+from jobs --> Show the Min and Max result
+
+
+
+select count(*) as NRecords from Employees --> Counts how many rows exists in the table
+
+select count(CountryID) from Employees
+where CountryID in (1,2) --> country how many specifics countriesId exists
+
+select count(distinct countryId) from Employees --> Counts how many diferent countriesId exists
+
+
+
+select MIN(RemainingBudget) as MinRemaningBudget from Budget
+where RemainingBudget is not null and year > DATEADD(year, -5, GETDATE()) --> Select Min budget from the fast 5 years
+
+
+select count(remainingbudget) from Budget
+where RemainingBudget > 0 and remainingbudget is not null --> Count values that aren't 0 and nulls
+
+
+-----------------------------------------------------------------------------------------------
+
+SUM, AVG
+
+select sum (allocatedBudget) as TotalBudget from budget
+where YEAR in (2010, 2011) --> select sum from specific years
+
+select sum (remainingbudget) from budget
+where year between 2015 and 2020 --> sum between years
+
+select avg(allocatedbudget) from budget --> avg from all data
+
+
+------------------------------------------------------------------------------------------------
+
+-- GROUP BY
+
+select countryid, count(EmployeeID) as TotalEmployeesPerCountry from Employees
+group by CountryID --> Count EmployeesID per and group by CountryID
+
+
+select countryid, count(EmployeeID) as TotalEmployeesPerCountry from Employees
+where CountryID in (1,2,3)
+group by CountryID --> Count EmployeesID per and group by CountryId where countryId is 1,2 and 3
+
+
+select departmentid, count(Employeeid) as TotalEmployeesPerDepartment from Employees
+group by DepartmentID --> Count EmployeesID per and group by DepartmentId
+
+
+select CountryID, count(CityName) as TotalCitiesPerCountry from Cities
+group by CountryID --> Count CityId per and group by CountryID
+
+
+
+-- HAVING
+
+
+select CountryID, count(CityName) as TotalCitiesPerCountry from Cities
+group by CountryID
+having count(CityName) >= 20
+order by count(CityName) desc  --> Count CityId per and group by CountryID having cityname >= 20 counts and order by the counts of CityName desc
+
+
+
+select City, count(City) as TotalCities from Person.Address
+where (City like 'S%') or (city like 'C%' )
+group by City
+having (count(city) > 99)
+order by COUNT(City) desc --> select city and count cities where city starts with 'S' and 'C' grouped by Cities having city + 99 and order by City counts
+
+
+--------------------------------------------------------------------------------------------------
+
+-- INSERT
+
+insert into Countries(CountryID, CountryName, CountryAb, Capital)
+values (7, 'Spain', 'ES', 'Madrid') --> Insert on table the values
+
+insert into Countries values (8, 'England', 'EN', 'London') --> Insert on table the values
+
+insert into Countries(CountryID, CountryName) values (10, 'Other') --> Insert on table the some values
+
+
+insert into planning_employees(EmployeeID, EmployeeFirstName, EmployeeLastName, DepartmentID)
+select EmployeeID, EmployeeFirstName, EmployeeLastName, DepartmentID from Employees
+where DepartmentID in (1, 5) --> insert into planning_employees the values from employees where there are specific DepartementId
+
+
+------------------------------------------------------------------------------------------------
+
+-- DELETE
+
+delete from planning_employees --> delete all data of the table
+
+delete from planning_employees
+where DepartmentID = 5 --> delete from table where would be a specific value
+
+------------------------------------------------------------------------------------------------
+
+-- UPDATE
+
+update Employees
+set Email= 'john@costumdomainname.com'
+where EmployeeID = 1 --> change a value where the specific data match
+
+
+update Jobs
+set MinSalary = 10000, MaxSalary = 22000
+where JobTitle like '%Manager%' --> update minsalary and maxsalary data of jobs table where there is a specific word on table data
+
+
+update Employees
+set StatusID = 3
+where EmployeeID in (4,9,14) --> update employees setting a value where had a specific value
+
+
+update Employees
+set StatusID = 1
+where StatusID is null --> update Employees setting vales where data is null
+
+
+------------------------------------------------------------------------------------------------ String Functions
+
+
+-- Upper
+
+
+select *, UPPER(EmployeeFirstName) as FirstNameUpperCase,
+upper(EmployeeLastName) as LastNameUpperCase
+from Employees --> Every data on FirstName and LastName is in upper case
+
+
+-- Lower
+
+
+select *, lower(EmployeeFirstName) as FirstNameLowerCase,
+lower(EmployeeLastName) as LastNameLowerCase
+from Employees -->  Every data on FirstName and LastName is in lower case
+
+
+-- Reverse
+
+
+select EmployeeFirstName, reverse(EmployeeFirstName) from Employees --> Every data on firsName is reversed
+
+
+------------------------------------------------------------------------------------------------
+
+
+-- SUBSTRING / CONCAT
+
+
+select EmployeeFirstName, EmployeeLastName, 
+SUBSTRING(EmployeeFirstName, 1, 1) as FirstLetterFirstName,
+SUBSTRING(EmployeeLastName, 1, 1) as FirstLetterLastName
+from Employees --> Showing the First Letters of FirstName and LastName
+
+
+select CONCAT(EmployeeFirstName,' ', EmployeeLastName, ' - ', Email) as FullNameAndEmail from Employees --> Showing the FirstName and LastName Together
+
+
+select CONCAT_WS(' / ',EmployeeFirstName, EmployeeLastName, Email) as FullnNameAndEmail from Employees --> Showing the FirstName and LastName together with a specific separator
+
+
+select CONCAT_WS(' . ', SUBSTRING(EmployeeFirstName, 1, 1), SUBSTRING(EmployeeLastName, 1, 1)) from Employees --> Showing first FirstName Letter and First LastName letter together with a specific separator
+
+
+select REPLACE(EmployeeFirstName, 'a', '@') as FunnyA from Employees --> Showing replacement of 'a' for '@' on the FirstNames data
+
+
+select *, REPLACE(Remarks, 'USA Employees', 'Americans Employees') as ReplacingWords from Employees --> Showing replacement of a specific phrase for another phrase on Remarks
+
+
+-------------------------------------------------------------------------------------------------
+
+-- LEN
+
+select EmployeeFirstName, len(EmployeeFirstName) as LenghtofFirstName from Employees --> Show the lenght of the FirstName
+
+-----------------------------------------------------------------------------------------------------
+
+-- CharIndex
+
+select *, CHARINDEX('h', EmployeeFirstName) as [Index]
+from Employees --> Show the position of the letter 'h' on the specific columm 
+
+select *, CHARINDEX('a', CityName,3) as IndexAfter3 
+from Cities --> Show the position of the letter 'a' only after the first 3 letters on the specific columm 
+
+
+-------------------------------------------------------------------------------------------------------
+
+-- First Part of the Email
+
+select email, SUBSTRING(email, 0, CHARINDEX('@', email)) as FirstPartofEmail
+from Employees --> Show the first part of the email, before '@' character
+
+
+select email, SUBSTRING(email, 0, CHARINDEX('@', email)) as FirstPartofEmail,
+SUBSTRING(email, CHARINDEX('@', email) +1, len(email)) as EndPartofEmail
+from Employees --> Show the first part of the email, before '@' character, and shows the last part of the email without '@' simbol
+
+
+
+------------------------------------------------------------------------------------------------------
+
+-- Coalesce
+
+
+select *, coalesce(Remarks, 'Pending') as NewRemarks
+from Employees --> Showing the table where null data is changed to 'Pending'
+
+
+-----------------------------------------------------------------------------------------------------
+
+-- REPLICATE
+
+select *, REPLICATE(0,3) + MobileNumber as NewSerial
+from Employees --> Relicate some number in MobileNumber Table
+
+
+-----------------------------------------------------------------------------------------------------
+
+-- Right & LEFT
+
+select EmployeeFirstName, RIGHT(EmployeeFirstName, 2) as FirstName
+from Employees --> Show the 2 letter from the right of the FirstName
+
+select EmployeeFirstName, LEFT(EmployeeFirstName, 2) as FirstName
+from Employees --> Show the 2 lettrs fro the left of the FirstName
+
+
+
+------------------------------------------------------------------------------------------------------ Numeric and Date Functions
+
+-- GetDate / DateAdd
+
+select GetDate() --> Gets the current date
+
+select DATEADD(YEAR, 1, getdate()) --> Add 1 year at getdate
+
+select DATEADD(MONTH, 3, getdate()) --> Add 3 month at getdate
+
+
+-- DateDiff
+
+
+select DATEDIFF(year,'2009-12-31', '2019-01-01') as YearsDifference --> Displays the years diference between the date (also can work with months, weeks, days, minutes, seconds)
+
+
+
+-- DateName
+
+
+select DATENAME(Month, '2019-11-25') as DateMonthName --> Gives the month name of the date
+
+select DATENAME(weekday, '2019-11-25') as DateWeekName --> Gives the week day name of the date
+
+
+select *, DATENAME(MONTH, dob) as DOBMonthNAme,
+DATENAME(WEEKDAY, DOB) as DOBWeekName
+from Employees --> Gives the Month and the Weekday of the table data
+
+
+select *, DATEDIFF(year, DOB, GETDATE()) as EmployeeAge
+from Employees --> Get Age of the data Employees
+
+
+
+ -- Round, ceiling and floor
+
+
+ select round(164.62, 1) --> returns 164.60, becaus it is the most rounded number
+
+ select CEILING(164.10) --> return 165 because is the greater integer most closest to the number
+
+ select floor(164.58) --> returns 165 because is the largest integer
+
+
+ -- Abs, Rand and Sign
+
+  -- Abs Funcion : Returns the absolute (positive) value if the specific numeric expression
+
+  select ABS(-1.35) --> Returns 1.35 (positive)
+
+  -- Rand Function : Return a random decimal number, between 0 and 1
+
+  Select Rand() as RanbomNumber
+
+  -- Sign Function : Returns the positive (+1), zero (0), or negative (-1) sign of the specified expression
+
+  select sign(1.35) --> Return 1.00
+
+  
+
+
+--------------------------------------------------------------------------------- INNER JOINS
+
+-- INNER JOIN
+
+select Employees.EmployeeFirstName, Employees.EmployeeLastName, Employees.CountryID, 
+Countries.CountryName, Countries.Capital, Countries.CountryAb
+from Employees
+inner join Countries
+on Employees.CountryID = Countries.CountryID --> Shows EMployees First Name, Last Name, County ID and shows the corresponded data of the Country table
+
+
+select Employees.EmployeeFirstName, Employees.EmployeeLastName, Employees.DepartmentID, Departments.DepartmentName
+from Employees
+inner join Departments
+on Employees.DepartmentID = Departments.DepartmentID --> Shows EMployee First Name, Last Name, Department ID and Department Name from the 2 tables
+
+
+select Employees.EmployeeFirstName, Employees.EmployeeLastName, Employees.Email, Employees.DepartmentID,Employees.CountryID,
+Departments.DepartmentName, Countries.CountryName, Countries.CountryAb, Countries.Capital
+from Employees
+inner join Departments on Employees.DepartmentID = Departments.DepartmentID
+inner join Countries on Employees.CountryID = Countries.CountryID
+where Countries.CountryName like '%a%' --> Shows the information of the 3 tables where is a 'a' on the Country Name
+
+
+select Countries.CountryID, Countries.Capital, Countries.CountryName, Countries.CountryAb,
+Cities.CityName
+from Countries
+inner join Cities on Countries.CountryID = Cities.CountryID
+order by Countries.CountryName desc --> Show data from Countries and cities tables order desc by County Name
+
+
+select Countries.CountryName, Countries.CountryAb, count(cities.CityID) as NumberofCities from 
+Countries
+inner join Cities
+on Countries.CountryID = Cities.CountryID
+group by Cities.CountryID, Countries.CountryName, Countries.CountryAb --> Shows the countries name and the country ab with total number of cities on the al countries
+
+
+ -- RIGHT
+
+
+select Countries.CountryName, Cities.CityName
+from Cities
+right outer join Countries
+on Cities.CityID = Countries.CountryID --> Show the right side of the join
+
+
+-- LEFT
+
+
+select Countries.CountryName, Employees.EmployeeFirstName, Employees.EmployeeLastName
+from Countries
+left outer join Employees
+on Countries.CountryID = Employees.CountryID
+order by Countries.CountryName --> Show the right dise of the join
+
+
+-- VIEWS
+
+
+create view EMployeesFullInsformationView
+as
+select Employees.EmployeeFirstName, Employees.EmployeeLastName, Employees.Email, Employees.DepartmentID,Employees.CountryID,
+Departments.DepartmentName, Countries.CountryName, Countries.CountryAb, Countries.Capital
+from Employees
+inner join Departments on Employees.DepartmentID = Departments.DepartmentID
+inner join Countries on Employees.CountryID = Countries.CountryID --> Creates a view with that informations
+
+
+select * from EMployeesFullInsformationView
+where EmployeeFirstName like 'S%'--> Accesing the information above where First Name starts with 'S'
+
+
+-- ALTER THE VIEW
+
+ --> Go to the view - Script View as - Alter to - New Query Editor - and alter inside the query
+
+ 
+ --------------------------------------------------------------------------- Stored Procedures
+
+
+create procedure SelectEmployees
+as
+select * from Employees --> Creating Storing procedures
+
+execute SelectEmployees --> Executing the Storing procedure
+
+SelectEmployees --> Executing the storing procedure only by the name
+
+
+
+create procedure EmployeesAndCountries
+as
+select * from Employees
+inner join Countries
+on Employees.CountryID = Countries.CountryID --> Creating a inner join on Storing Procedure
+
+execute EmployeesAndCountries --> Executing the Stored Procedure
+
+
+
+create procedure EmployeesPerCountry
+@countryID int
+as
+select * from Employees
+where CountryID = @countryID --> Creating a Store Procedure with a parameter as a request
+
+
+execute EmployeesPerCountry @countryid = 1 --> Executing the Store Procedure and passing the parameter
+
+
+create procedure EmpCountryDefault
+@countryID int = 1
+as
+select * from Employees
+where CountryID = @countryID --> Creating a Store Procedure with a default Parameter
+
+execute EmpCountryDefault @countryID = 2 --> Executing the Store Procedure with a request that will overrite the default parameter
+
+
+
+create procedure BudgetValues
+@MinValue int = 1000,
+@MaxValue int = 5000
+
+as
+select * from Budget
+where AllocatedBudget between @MinValue and @MaxValue --> Creating a Stored Procedure with multiple default parameters 
+
+
+execute BudgetValues @MaxValue = 3500000 --> Execute the Stored Procedure givin only one value, the other working on default
+
+execute BudgetValues @MinValue = 2000000, @MaxValue = 2500000 --> Execute the Stored PRocedure with the multiples paramenters
+
+
+
+-- INSERT STATEMENT STORED PROCEDURE
+
+
+create procedure AddNewCity
+@cityid int, 
+@cityname varchar (250),
+@countryid int 
+as
+insert into Cities
+values (@cityid, @cityname, @countryid) --> Creating Stored Procedure to create new data
+
+
+Execute AddNewCity
+@cityid = 146,
+@cityname = 'London',
+@countryid = 8 	--> Executing the Stored Procedure with the parameters to create new data
+
+
+
+-- DELETE STATEMENT STORED PROCEDURE
+
+create procedure DeleteCountry
+@countryid int
+as
+delete from Countries
+where Countries.CountryID = @countryid --> Creating Stored Procedure to delete data
+
+Execute DeleteCountry 10 --> Executing the Stored Procedure with the correspondent paramets to delete
+
+
+
+-- UPDATE STATEMENT STORED PROCEDURE
+
+
+Create procedure UpdateCountries
+@countryid int = CountryId,
+@Countryname varchar(100),
+@countryab varchar(5) = null,
+@Capital varchar(50) = null
+as
+update Countries
+set 
+CountryID = @countryid, 
+CountryName = @Countryname, 
+CountryAb = @countryab,
+Capital = @Capital
+where CountryID = @countryid --> Creating Stored Procedure to update Data 
+
+
+Execute UpdateCountries 
+@countryid = 1,
+@Countryname = 'United States',
+@countryab = 'US',
+@capital =  'Washington D.C.' --> Executing the update Stored Procedure 
+
+
